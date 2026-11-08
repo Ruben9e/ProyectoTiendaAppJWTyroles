@@ -1,0 +1,79 @@
+{
+  "info": {
+    "_postman_id": "62b80f81-5ded-4c5f-900a-46aa537b0a73",
+    "name": "TiendaApp JWT y roles",
+    "description": "Colección de endpoints de la actividad. Ejecuta Login para guardar {{token}}. Ajusta los IDs de las variables después de crear recursos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:9090/api/v1/tienda" },
+    { "key": "token", "value": "" },
+    { "key": "categoryId", "value": "1" },
+    { "key": "productId", "value": "1" },
+    { "key": "userId", "value": "2" },
+    { "key": "orderId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register CLIENTE",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"username\":\"cliente1\",\"email\":\"cliente1@example.com\",\"password\":\"Cliente123!\"}" }, "url": "{{baseUrl}}/auth/register" }
+        },
+        {
+          "name": "Login (guarda token)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const body = pm.response.json();", "if (body.data && body.data.token) pm.collectionVariables.set('token', body.data.token);"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"user\":\"admin\",\"password\":\"password\"}" }, "url": "{{baseUrl}}/auth/login" }
+        },
+        {
+          "name": "Refresh token",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const body = pm.response.json();", "if (body.data && body.data.token) pm.collectionVariables.set('token', body.data.token);"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/auth/refreshtoken" }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        { "name": "GET me", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/users/me" } },
+        { "name": "GET users (ADMIN)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/users" } },
+        { "name": "POST create VENDEDOR (ADMIN)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"username\":\"vendedor1\",\"email\":\"vendedor1@example.com\",\"password\":\"Vendedor123!\",\"role\":\"VENDEDOR\"}" }, "url": "{{baseUrl}}/users" } },
+        { "name": "PATCH role (ADMIN)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"role\":\"VENDEDOR\"}" }, "url": "{{baseUrl}}/users/{{userId}}/role" } },
+        { "name": "PATCH status (ADMIN)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"active\":true}" }, "url": "{{baseUrl}}/users/{{userId}}/status" } }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        { "name": "GET categories", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/categories" } },
+        { "name": "POST category (ADMIN)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"name\":\"Tecnología\"}" }, "url": "{{baseUrl}}/categories" } },
+        { "name": "DELETE category (ADMIN)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/categories/{{categoryId}}" } }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        { "name": "GET catálogo público", "request": { "method": "GET", "url": "{{baseUrl}}/products" } },
+        { "name": "GET catálogo paginado", "request": { "method": "GET", "url": "{{baseUrl}}/products?page=0&size=10" } },
+        { "name": "GET product público", "request": { "method": "GET", "url": "{{baseUrl}}/products/{{productId}}" } },
+        { "name": "GET products by category", "request": { "method": "GET", "url": "{{baseUrl}}/products?categoryId={{categoryId}}" } },
+        { "name": "GET mine (VENDEDOR)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/products/mine" } },
+        { "name": "POST product (VENDEDOR)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"name\":\"Teclado\",\"description\":\"Teclado USB\",\"price\":25.50,\"stock\":10,\"categoryId\":{{categoryId}}}" }, "url": "{{baseUrl}}/products" } },
+        { "name": "PUT product (dueño o ADMIN)", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"name\":\"Teclado actualizado\",\"description\":\"Teclado USB\",\"price\":27.00,\"stock\":9,\"categoryId\":{{categoryId}}}" }, "url": "{{baseUrl}}/products/{{productId}}" } },
+        { "name": "DELETE product (dueño o ADMIN)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/products/{{productId}}" } }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        { "name": "POST order (CLIENTE)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"productId\":{{productId}},\"quantity\":2}" }, "url": "{{baseUrl}}/orders" } },
+        { "name": "GET mine (CLIENTE)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/orders/mine" } },
+        { "name": "GET sales (VENDEDOR)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/orders/sales" } },
+        { "name": "GET all (ADMIN)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/orders" } },
+        { "name": "PATCH status (VENDEDOR/ADMIN)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"status\":\"ENVIADO\"}" }, "url": "{{baseUrl}}/orders/{{orderId}}/status" } },
+        { "name": "PATCH cancel (CLIENTE dueño)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/orders/{{orderId}}/cancel" } }
+      ]
+    }
+  ]
+}
